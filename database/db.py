@@ -23,7 +23,7 @@ def close_connection (connection):
     else:
         print("connection n a pas pu être intéronpu ")
 
-        
+
 #test 
 if __name__ == "__main__":
     conn = create_connection()
