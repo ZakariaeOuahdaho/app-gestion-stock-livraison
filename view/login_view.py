@@ -12,26 +12,12 @@ from view.admin_view import ManagementPage
 from view.client_view import ClientPage
 from view.livreur_view import LivreurPage
 
-import customtkinter as ctk
-from tkinter import messagebox
-from mysql.connector import Error
-import os
-import sys
-
-current_dir = os.path.dirname(os.path.abspath(__file__))
-parent_dir = os.path.dirname(current_dir)
-sys.path.append(parent_dir)
-from database.db import create_connection, close_connection
-from view.admin_view import ManagementPage
-from view.client_view import ClientPage
-from view.livreur_view import LivreurPage
-
 class LoginPage(ctk.CTk):
     def __init__(self):
         super().__init__()
 
         self.title("Login")
-        self.geometry("300x200")
+        self.geometry("800x600")
 
         # Widgets de la page de connexion
         self.label_username = ctk.CTkLabel(self, text="Nom d'utilisateur")

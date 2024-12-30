@@ -24,7 +24,7 @@ class ClientPage (ctk.CTk):
         self.button_logout.pack(pady=20)
 
     def logout(self):
-        from view.login_view import LoginPage  # Import ici pour éviter l'import circulaire
+        from view.login_view import LoginPage 
         self.destroy()
         app = LoginPage()
         app.mainloop()
