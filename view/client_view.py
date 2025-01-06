@@ -312,7 +312,7 @@ class ClientPage(ctk.CTk):
         total_items = sum(self.panier.items.values())
         total_price = self.panier.get_total()
         self.cart_counter_label.configure(text=f"Articles: {total_items}")
-        self.cart_total_label.configure(text=f"Total: {total_price:.2f} €")
+        self.cart_total_label.configure(text=f"Total: {total_price:.2f} MAD")
 
     def logout(self):
         if messagebox.askyesno("Déconnexion", "Voulez-vous vraiment vous déconnecter ?"):

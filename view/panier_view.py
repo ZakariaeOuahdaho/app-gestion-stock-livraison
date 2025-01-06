@@ -42,7 +42,7 @@ class PanierWindow(ctk.CTkToplevel):
         # Label pour le total
         self.total_label = ctk.CTkLabel(
             self.button_frame, 
-            text="Total: 0.00 €",
+            text="Total: 0.00 MAD",
             font=("Arial", 16, "bold")
         )
         self.total_label.pack(side="left", padx=10)
@@ -89,14 +89,14 @@ class PanierWindow(ctk.CTkToplevel):
             self.tree.insert("", "end", values=(
                 item['id'],
                 item['nom'],
-                f"{item['prix']:.2f} €",
+                f"{item['prix']:.2f} MAD",
                 item['quantite'],
-                f"{item['total']:.2f} €"
+                f"{item['total']:.2f} MAD"
             ))
 
         # Mettre à jour le total
         total = self.panier.get_total()
-        self.total_label.configure(text=f"Total: {total:.2f} €")
+        self.total_label.configure(text=f"Total: {total:.2f} MAD")
 
     def supprimer_selection(self):
         selection = self.tree.selection()
