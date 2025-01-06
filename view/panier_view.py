@@ -1,21 +1,27 @@
 import customtkinter as ctk
 from tkinter import ttk, messagebox
+from database.db import create_connection, close_connection
 
 class PanierWindow(ctk.CTkToplevel):
     def __init__(self, parent, panier):
         super().__init__(parent)
-        self.panier = panier
         
         self.title("Mon Panier")
-        self.geometry("600x400")
-
+        self.geometry("600x500")  # Augmenté la hauteur pour le bouton
+        
+        self.panier = panier
+        
         # Configuration de la fenêtre
         self.setup_ui()
         self.update_panier()
 
     def setup_ui(self):
         # Titre
-        self.label_title = ctk.CTkLabel(self, text="Mon Panier", font=("Arial", 20, "bold"))
+        self.label_title = ctk.CTkLabel(
+            self, 
+            text="Mon Panier", 
+            font=("Arial", 20, "bold")
+        )
         self.label_title.pack(pady=10)
 
         # Treeview pour les produits du panier
@@ -29,15 +35,19 @@ class PanierWindow(ctk.CTkToplevel):
         
         self.tree.pack(pady=10, padx=10, fill="both", expand=True)
 
-        # Frame pour les boutons
+        # Frame pour les boutons d'action
         self.button_frame = ctk.CTkFrame(self)
         self.button_frame.pack(fill="x", padx=10, pady=5)
 
         # Label pour le total
-        self.total_label = ctk.CTkLabel(self.button_frame, text="Total: 0.00 €")
+        self.total_label = ctk.CTkLabel(
+            self.button_frame, 
+            text="Total: 0.00 €",
+            font=("Arial", 16, "bold")
+        )
         self.total_label.pack(side="left", padx=10)
 
-        # Boutons
+        # Boutons d'action
         self.btn_supprimer = ctk.CTkButton(
             self.button_frame,
             text="Supprimer",
@@ -52,12 +62,21 @@ class PanierWindow(ctk.CTkToplevel):
         )
         self.btn_modifier.pack(side="right", padx=5)
 
-        self.btn_vider = ctk.CTkButton(
-            self.button_frame,
-            text="Vider le panier",
-            command=self.vider_panier
+        # Frame pour le bouton de confirmation
+        self.confirm_frame = ctk.CTkFrame(self)
+        self.confirm_frame.pack(fill="x", padx=10, pady=10)
+
+        # Bouton de confirmation du panier
+        self.btn_confirmer = ctk.CTkButton(
+            self.confirm_frame,
+            text="Confirmer la commande",
+            font=("Arial", 14, "bold"),
+            height=40,
+            command=self.confirmer_commande,
+            fg_color="green",
+            hover_color="dark green"
         )
-        self.btn_vider.pack(side="right", padx=5)
+        self.btn_confirmer.pack(pady=10, padx=20, fill="x")
 
     def update_panier(self):
         # Effacer les anciennes données
@@ -116,7 +135,19 @@ class PanierWindow(ctk.CTkToplevel):
             else:
                 messagebox.showerror("Erreur", "La quantité doit être supérieure à 0")
 
-    def vider_panier(self):
-        if messagebox.askyesno("Confirmation", "Voulez-vous vraiment vider le panier?"):
-            self.panier.vider_panier()
-            self.update_panier()
+    def confirmer_commande(self):
+        if not self.tree.get_children():
+            messagebox.showwarning("Attention", "Votre panier est vide")
+            return
+
+        if messagebox.askyesno("Confirmation", "Voulez-vous confirmer votre commande?"):
+            # Ouvrir la fenêtre de confirmation de commande
+            from view.confirmation_commande import ConfirmationCommande
+            confirmation = ConfirmationCommande(self, self.panier, self.panier.utilisateur_id)
+            confirmation.grab_set()
+            self.withdraw()  # Cache la fenêtre du panier
+
+    def on_closing(self):
+        self.destroy()
+        if hasattr(self, 'parent'):
+            self.parent.update_cart_counter()

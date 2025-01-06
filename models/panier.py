@@ -3,7 +3,7 @@ from mysql.connector import Error
 
 class Panier:
     def __init__(self, utilisateur_id):
-        self.utilisateur_id = utilisateur_id
+        self.utilisateur_id = 2
         self.items = {}  # {produit_id: quantité}
         self.load_panier()
 
@@ -134,3 +134,4 @@ class Panier:
             finally:
                 cursor.close()
                 close_connection(connection)
+
