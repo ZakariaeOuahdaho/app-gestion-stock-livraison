@@ -70,9 +70,9 @@ class LoginPage(ctk.CTk):
         if user['role'] == 'admin':
             app = ManagementPage()
         elif user['role'] == 'client':
-            app = ClientPage()
+            app = ClientPage(user_id=user['id'])
         elif user['role'] == 'livreur':
-            app = LivreurPage()
+            app = LivreurPage(user_id=user['id'])  # Passe l'ID utilisateur
         else:
             messagebox.showerror("Erreur", "Rôle non reconnu")
             return

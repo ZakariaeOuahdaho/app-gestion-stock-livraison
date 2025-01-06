@@ -134,3 +134,4 @@ class Panier:
             finally:
                 cursor.close()
                 close_connection(connection)
+
