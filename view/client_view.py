@@ -322,5 +322,5 @@ class ClientPage(ctk.CTk):
             app.mainloop()
 
 if __name__ == "__main__":
-    app = ClientPage(user_id=1)  # Pour les tests
+    app = ClientPage(user_id=2)  # Pour les tests
     app.mainloop()
