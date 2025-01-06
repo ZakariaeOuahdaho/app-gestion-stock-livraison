@@ -124,7 +124,7 @@ class ClientPage(ctk.CTk):
 
         self.cart_total_label = ctk.CTkLabel(
             cart_frame,
-            text="Total: 0.00 €"
+            text="Total: 0.00 MAD"
         )
         self.cart_total_label.pack(pady=5)
 
@@ -304,7 +304,7 @@ class ClientPage(ctk.CTk):
                 messagebox.showerror("Erreur", "Quantité invalide")
 
     def show_cart(self):
-        from views.panier_view import PanierWindow
+        from view.panier_view import PanierWindow
         panier_window = PanierWindow(self, self.panier)
         panier_window.grab_set()
 
@@ -317,7 +317,7 @@ class ClientPage(ctk.CTk):
     def logout(self):
         if messagebox.askyesno("Déconnexion", "Voulez-vous vraiment vous déconnecter ?"):
             self.destroy()
-            from views.login_view import LoginPage
+            from view.login_view import LoginPage
             app = LoginPage()
             app.mainloop()
 
