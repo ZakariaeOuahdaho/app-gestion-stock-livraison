@@ -390,7 +390,7 @@ class DeliveryDetailsWindow(ctk.CTkToplevel):
             f"Adresse: {delivery['adresse_livraison']}",
             f"Date: {delivery['date_commande']}",
             f"Statut: {delivery['statut']}",
-            f"Total: {delivery['total']}€"
+            f"Total: {delivery['total']}MAD"
         ]
 
         for label in labels:
@@ -420,8 +420,8 @@ class DeliveryDetailsWindow(ctk.CTkToplevel):
             tree.insert("", "end", values=(
                 product['nom'],
                 product['quantite'],
-                f"{product['prix_unitaire']}€",
-                f"{total}€"
+                f"{product['prix_unitaire']}MAD",
+                f"{total}MAD"
             ))
 
         tree.pack(fill="both", expand=True)

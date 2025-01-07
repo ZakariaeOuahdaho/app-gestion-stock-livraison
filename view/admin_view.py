@@ -1,73 +1,176 @@
 import customtkinter as ctk
-from tkinter import messagebox
-from mysql.connector import Error
-import os
-import sys
-
-current_dir = os.path.dirname(os.path.abspath(__file__))
-parent_dir = os.path.dirname(current_dir)
-sys.path.append(parent_dir)
-from database.db import create_connection, close_connection
-
-# Configuration de base pour CustomTkinter
-ctk.set_appearance_mode("System")
-ctk.set_default_color_theme("blue")
-
-class AdminApp(ctk.CTk):
-    def __init__(self):
-        super().__init__()
-    def open_management_page(self):
-        self.destroy()
-        management_page = ManagementPage()
-        management_page.mainloop()
-
-class ManagementPage(ctk.CTk):
-    def __init__(self):
-        super().__init__()
-
-        self.title("Page de Gestion")
-        self.geometry("800x600")
-
-        self.label_welcome = ctk.CTkLabel(self, text="Bienvenue sur la page de gestion")
-        self.label_welcome.pack(pady=20)
-
-        self.button_logout = ctk.CTkButton(self, text="Déconnexion", command=self.logout)
-        self.button_logout.pack(pady=20)
-
-    def logout(self):
-        from view.login_view import LoginPage
-        self.destroy()
-        app = LoginPage()
-        app.mainloop()
-
-if __name__ == "__main__":
-    app = AdminApp()
-    app.mainloop()
-
-
-
-import customtkinter as ctk
 from tkinter import ttk, messagebox
 from database.db import create_connection, close_connection
 from mysql.connector import Error
+import matplotlib.pyplot as plt
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
 class ManagementPage(ctk.CTk):
     def __init__(self):
         super().__init__()
 
-        self.title("Gestion des Produits")
-        self.geometry("800x600")
+        self.title("Administration")
+        self.geometry("1200x800")
 
-        # Frame principale
-        self.main_frame = ctk.CTkFrame(self)
-        self.main_frame.pack(fill="both", expand=True, padx=10, pady=5)
+        # Création des onglets
+        self.tabview = ctk.CTkTabview(self)
+        self.tabview.pack(fill="both", expand=True, padx=10, pady=5)
+
+        # Ajout des onglets
+        self.tab_dashboard = self.tabview.add("Dashboard")
+        self.tab_products = self.tabview.add("Gestion Produits")
+
+        # Setup du dashboard
+        self.setup_dashboard()
+
+        # Setup de la gestion des produits
+        self.setup_products_management()
+
+        # Bouton déconnexion
+        self.button_logout = ctk.CTkButton(self, text="Déconnexion", command=self.logout, fg_color="red")
+        self.button_logout.pack(pady=10)
+
+    def setup_dashboard(self):
+        # Frame pour les statistiques
+        stats_frame = ctk.CTkFrame(self.tab_dashboard)
+        stats_frame.pack(fill="x", padx=10, pady=10)
+
+        # Labels pour les statistiques
+        self.stats_labels = {
+            'revenue': ctk.CTkLabel(stats_frame, text="Revenu total: 0 MAD", font=("Arial", 16, "bold")),
+            'orders': ctk.CTkLabel(stats_frame, text="Commandes: 0", font=("Arial", 16, "bold")),
+            'products': ctk.CTkLabel(stats_frame, text="Produits vendus: 0", font=("Arial", 16, "bold"))
+        }
+
+        for label in self.stats_labels.values():
+            label.pack(side="left", padx=20, pady=10)
+
+        # Frame pour les graphiques
+        self.graphs_frame = ctk.CTkFrame(self.tab_dashboard)
+        self.graphs_frame.pack(fill="both", expand=True, padx=10, pady=10)
+
+        # Création des graphiques
+        self.create_graphs()
+
+        # Bouton de rafraîchissement
+        refresh_button = ctk.CTkButton(
+            self.tab_dashboard,
+            text="Rafraîchir",
+            command=self.refresh_dashboard
+        )
+        refresh_button.pack(pady=10)
+
+    def create_graphs(self):
+        # Création d'une figure matplotlib avec 2 sous-graphiques
+        fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 5))
+        
+        # Graphique des ventes par catégorie
+        self.plot_sales_by_category(ax1)
+        
+        # Graphique des produits les plus vendus
+        self.plot_top_products(ax2)
+
+        # Intégration des graphiques dans l'interface
+        canvas = FigureCanvasTkAgg(fig, self.graphs_frame)
+        canvas.draw()
+        canvas.get_tk_widget().pack(fill="both", expand=True)
+
+    def plot_sales_by_category(self, ax):
+        connection = create_connection()
+        if connection:
+            try:
+                cursor = connection.cursor()
+                cursor.execute("""
+                    SELECT c.nom, COUNT(cp.produit_id) as total_vendu
+                    FROM categories c
+                    LEFT JOIN produits p ON p.categorie_id = c.id
+                    LEFT JOIN commande_produits cp ON cp.produit_id = p.id
+                    GROUP BY c.nom
+                """)
+                results = cursor.fetchall()
+                
+                if results:
+                    categories, values = zip(*results)
+                    ax.pie(values, labels=categories, autopct='%1.1f%%')
+                    ax.set_title('Ventes par catégorie')
+                
+            finally:
+                cursor.close()
+                close_connection(connection)
+
+    def plot_top_products(self, ax):
+        connection = create_connection()
+        if connection:
+            try:
+                cursor = connection.cursor()
+                cursor.execute("""
+                    SELECT p.nom, SUM(cp.quantite) as total_vendu
+                    FROM produits p
+                    JOIN commande_produits cp ON cp.produit_id = p.id
+                    GROUP BY p.id, p.nom
+                    ORDER BY total_vendu DESC
+                    LIMIT 5
+                """)
+                results = cursor.fetchall()
+                
+                if results:
+                    products, values = zip(*results)
+                    ax.bar(products, values)
+                    ax.set_title('Top 5 des produits les plus vendus')
+                    plt.xticks(rotation=45)
+                
+            finally:
+                cursor.close()
+                close_connection(connection)
+
+    def update_stats(self):
+        connection = create_connection()
+        if connection:
+            try:
+                cursor = connection.cursor()
+                
+                # Revenu total
+                cursor.execute("SELECT SUM(total) FROM commandes")
+                revenue = cursor.fetchone()[0] or 0
+                self.stats_labels['revenue'].configure(
+                    text=f"Revenu total: {revenue:.2f} €"
+                )
+
+                # Nombre de commandes
+                cursor.execute("SELECT COUNT(*) FROM commandes")
+                orders = cursor.fetchone()[0] or 0
+                self.stats_labels['orders'].configure(
+                    text=f"Commandes: {orders}"
+                )
+
+                # Produits vendus
+                cursor.execute("SELECT SUM(quantite) FROM commande_produits")
+                products = cursor.fetchone()[0] or 0
+                self.stats_labels['products'].configure(
+                    text=f"Produits vendus: {products}"
+                )
+
+            finally:
+                cursor.close()
+                close_connection(connection)
+
+    def refresh_dashboard(self):
+        self.update_stats()
+        for widget in self.graphs_frame.winfo_children():
+            widget.destroy()
+        self.create_graphs()
+
+    def setup_products_management(self):
+        # Frame principale pour la gestion des produits
+        main_frame = ctk.CTkFrame(self.tab_products)
+        main_frame.pack(fill="both", expand=True, padx=10, pady=5)
 
         # Frame gauche pour l'ajout/modification de produits
-        self.left_frame = ctk.CTkFrame(self.main_frame)
+        self.left_frame = ctk.CTkFrame(main_frame)
         self.left_frame.pack(side="left", fill="both", expand=True, padx=5, pady=5)
 
         # Frame droite pour la liste des produits
-        self.right_frame = ctk.CTkFrame(self.main_frame)
+        self.right_frame = ctk.CTkFrame(main_frame)
         self.right_frame.pack(side="right", fill="both", expand=True, padx=5, pady=5)
 
         self.setup_product_form()
@@ -227,7 +330,41 @@ class ManagementPage(ctk.CTk):
             messagebox.showwarning("Attention", "Veuillez sélectionner un produit à modifier")
             return
 
-        # Code pour modifier le produit...
+        produit_id = self.tree.item(selected_item[0])['values'][0]
+        nom = self.nom_var.get()
+        description = self.description_var.get()
+        prix = self.prix_var.get()
+        quantite = self.quantite_var.get()
+        categorie = self.categorie_combobox.get()
+
+        if not all([nom, prix, quantite, categorie]):
+            messagebox.showerror("Erreur", "Veuillez remplir tous les champs obligatoires")
+            return
+
+        connection = create_connection()
+        if connection:
+            try:
+                cursor = connection.cursor()
+                # Obtenir l'ID de la catégorie
+                cursor.execute("SELECT id FROM categories WHERE nom = %s", (categorie,))
+                categorie_id = cursor.fetchone()[0]
+
+                # Modifier le produit
+                cursor.execute("""
+                    UPDATE produits 
+                    SET nom = %s, description = %s, prix = %s, quantite = %s, categorie_id = %s
+                    WHERE id = %s
+                """, (nom, description, float(prix), int(quantite), categorie_id, produit_id))
+                
+                connection.commit()
+                messagebox.showinfo("Succès", "Produit modifié avec succès")
+                self.clear_form()
+                self.load_products()
+            except Error as e:
+                messagebox.showerror("Erreur", f"Erreur lors de la modification du produit: {e}")
+            finally:
+                cursor.close()
+                close_connection(connection)
 
     def supprimer_produit(self):
         selected_item = self.tree.selection()
@@ -235,4 +372,31 @@ class ManagementPage(ctk.CTk):
             messagebox.showwarning("Attention", "Veuillez sélectionner un produit à supprimer")
             return
 
-        # Code pour supprimer le produit...
+        if messagebox.askyesno("Confirmation", "Voulez-vous vraiment supprimer ce produit ?"):
+            produit_id = self.tree.item(selected_item[0])['values'][0]
+            
+            connection = create_connection()
+            if connection:
+                try:
+                    cursor = connection.cursor()
+                    cursor.execute("DELETE FROM produits WHERE id = %s", (produit_id,))
+                    connection.commit()
+                    messagebox.showinfo("Succès", "Produit supprimé avec succès")
+                    self.clear_form()
+                    self.load_products()
+                except Error as e:
+                    messagebox.showerror("Erreur", f"Erreur lors de la suppression du produit: {e}")
+                finally:
+                    cursor.close()
+                    close_connection(connection)
+
+    def logout(self):
+        if messagebox.askyesno("Déconnexion", "Voulez-vous vraiment vous déconnecter ?"):
+            self.destroy()
+            from view.login_view import LoginPage
+            app = LoginPage()
+            app.mainloop()
+
+if __name__ == "__main__":
+    app = ManagementPage()
+    app.mainloop()
