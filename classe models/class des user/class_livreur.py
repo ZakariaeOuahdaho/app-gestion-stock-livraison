@@ -1,16 +1,29 @@
+from class_utilisateur import Utilisateur
 class Livreur(Utilisateur):
     def __init__(self, id=None, nom_utilisateur="", mot_de_passe=""):
         super().__init__(id, nom_utilisateur, mot_de_passe, role="livreur")
         self.livraisons = []
 
-    def voir_livraisons_disponibles(self):
+    def create_delivery_list(self):
+        pass
+    #avec la base donée 
+    def load_deliveries(self):
+        pass
+    
+    def update_statistics(self):
+        pass
+    
+    def filter_deliveries(self):
         pass
 
-    def accepter_livraison(self, livraison_id):
+    def take_delivery(self):
         pass
-
-    def completer_livraison(self, livraison_id):
+    
+    def complete_delivery(self):
         pass
-
-    def voir_historique_livraisons(self):
+    
+    def show_delivery_details(self):
+        pass
+    
+    def logout(self):
         pass
