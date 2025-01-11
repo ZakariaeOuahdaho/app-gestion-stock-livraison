@@ -23,7 +23,9 @@ Ce projet est un système complet de gestion de supermarché en ligne développ�
 📰Les identifiants de test :
 
 -Admin : admin/password
+
 -Client : client1/password
+
 -Livreur : livreur1/password
 
 
@@ -34,7 +36,6 @@ MySQL Server
 
 Contributeurs 👥
 
-KORCHI SAAD
-
+KORCHI SAAD /
 OUAHDAHO ZAKARIAE
 
